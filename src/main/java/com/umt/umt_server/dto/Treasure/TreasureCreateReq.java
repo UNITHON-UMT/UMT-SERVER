@@ -1,4 +1,4 @@
-package com.umt.umt_server.dto;
+package com.umt.umt_server.dto.Treasure;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -12,6 +12,8 @@ import lombok.Getter;
 @ApiModel("보물 등록 요청 정보")
 public class TreasureCreateReq {
 
+    @ApiModelProperty(value = "유저 인덱스", required = true, example = "1")
+    private Long userId;
 
     @ApiModelProperty(value = "위도", required = true, example = "image.com")
     private double latitude;
@@ -47,6 +49,6 @@ public class TreasureCreateReq {
     private String answer3;
 
     @ApiModelProperty(value = "정답 index", example = "0")
-    private Integer answerIndex;
+    private Integer answerId;
 
 }

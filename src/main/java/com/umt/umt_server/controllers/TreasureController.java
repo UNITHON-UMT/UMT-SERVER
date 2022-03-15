@@ -1,14 +1,16 @@
 package com.umt.umt_server.controllers;
 
 import com.umt.umt_server.application.TreasureService;
-import com.umt.umt_server.dto.*;
+import com.umt.umt_server.dto.Quest.QuestRes;
+import com.umt.umt_server.dto.Reaction.ReactionReq;
+import com.umt.umt_server.dto.Treasure.TreasureCreateReq;
+import com.umt.umt_server.dto.Treasure.TreasureCreateRes;
+import com.umt.umt_server.dto.Treasure.TreasureRes;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -19,22 +21,22 @@ public class TreasureController {
     @PostMapping("/treasure")
     @ApiOperation(value = "보물&퀘스트 등록", notes = "보물과 퀘스트를 등록합니다.")
     @ResponseStatus(HttpStatus.CREATED)
-    public TreasureCreateRes createTreasure(@RequestBody TreasureCreateReq treasureRegistrationData)
+    public TreasureCreateRes createTreasure(@RequestBody TreasureCreateReq treasureCreateReq)
     {
-        return treasureService.createTreasure(treasureRegistrationData);
+        return treasureService.createTreasure(treasureCreateReq);
     }
 
-    @GetMapping("/treasure/{treasureId}")
+    @GetMapping("/quest")
     @ResponseStatus(HttpStatus.OK)
-    @ApiOperation(value = "보물&퀘스트 상세 조회", notes = "보물과 퀘스트를 상세 조회합니다.")
-    public TreasureDetailRes getTreasure(@PathVariable @ApiParam(value = "보물 식별자 값")  Long treasureId) {
-        return treasureService.getTreasure(treasureId);
+    @ApiOperation(value = "퀘스트 조회", notes = "퀘스트를 조회합니다.")
+    public QuestRes getQuest(@RequestParam @ApiParam(value = "보물 식별자 값")  Long treasureId) {
+        return treasureService.getQuest(treasureId);
     }
 
     @GetMapping("/treasures")
     @ResponseStatus(HttpStatus.OK)
     @ApiOperation(value = "보물 목록 검색", notes = "보물 목록 상세 정보를 조회합니다. (반경 2KM 내)")
-    public List<TreasureListRes> getLists(@RequestParam @ApiParam(value = "경도 값") double longitude, @RequestParam @ApiParam(value = "위도 값") double latitude) {
+    public TreasureRes getLists(@RequestParam @ApiParam(value = "경도 값") double longitude, @RequestParam @ApiParam(value = "위도 값") double latitude) {
         return treasureService.getLists(latitude, longitude);
     }
 

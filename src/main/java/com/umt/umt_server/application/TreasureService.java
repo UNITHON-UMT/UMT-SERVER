@@ -4,7 +4,12 @@ import com.umt.umt_server.domain.Quest;
 import com.umt.umt_server.domain.Treasure;
 import com.umt.umt_server.domain.TreasureReaction;
 import com.umt.umt_server.domain.User;
-import com.umt.umt_server.dto.*;
+import com.umt.umt_server.dto.Quest.QuestRes;
+import com.umt.umt_server.dto.Reaction.ReactionReq;
+import com.umt.umt_server.dto.Treasure.TreasureCreateReq;
+import com.umt.umt_server.dto.Treasure.TreasureCreateRes;
+import com.umt.umt_server.dto.Treasure.TreasureListRes;
+import com.umt.umt_server.dto.Treasure.TreasureRes;
 import com.umt.umt_server.errors.CustomException;
 import com.umt.umt_server.errors.ErrorCode;
 import com.umt.umt_server.infra.QuestRepository;
@@ -16,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +38,7 @@ public class TreasureService {
 
     public TreasureCreateRes createTreasure(TreasureCreateReq treasureRegistrationData) {
 
-        Optional<User> user = userRepository.findById(1L);
+        Optional<User> user = userRepository.findById(treasureRegistrationData.getUserId());
 
         Treasure treasure = treasureRepository.save(
                 Treasure.builder()
@@ -56,7 +62,7 @@ public class TreasureService {
                     .answer1(treasureRegistrationData.getAnswer1())
                     .answer2(treasureRegistrationData.getAnswer2())
                     .answer3(treasureRegistrationData.getAnswer3())
-                    .answerIndex(treasureRegistrationData.getAnswerIndex())
+                    .answerIndex(treasureRegistrationData.getAnswerId())
                     .build());
             questId = quest.getId();
         }
@@ -67,29 +73,29 @@ public class TreasureService {
                 .build();
     }
 
-    public TreasureDetailRes getTreasure(Long treasureId) {
+    public QuestRes getQuest(Long treasureId) {
+
         Optional<Treasure> treasure = treasureRepository.findById(treasureId);
         Optional<Quest> quest = questRepository.findByTreasure(treasure);
 
-        return TreasureDetailRes.builder()
+        Long like = treasureReactionRepository.countByTreasureAndReactionType(treasure, "like");
+        Long dislike = treasureReactionRepository.countByTreasureAndReactionType(treasure, "hate");
+
+        return QuestRes.builder()
                 .treasureId(treasure.get().getId())
                 .questId(quest.get().getId())
                 .answer0(quest.get().getAnswer0())
                 .answer1(quest.get().getAnswer1())
                 .answer2(quest.get().getAnswer2())
                 .answer3(quest.get().getAnswer3())
-                .answerIndex(quest.get().getAnswerIndex())
                 .hashTag(treasure.get().getHashTag())
-                .hasQuest(treasure.get().getHasQuest())
-                .latitude(treasure.get().getLatitude())
-                .longitude(treasure.get().getLongitude())
-                .photoUrl(treasure.get().getPhotoUrl())
                 .question(quest.get().getQuestion())
-                .text(treasure.get().getText())
+                .likeCnt(like)
+                .dislikeCnt(dislike)
                 .build();
     }
 
-    public List<TreasureListRes> getLists(double latitude, double longitude) {
+    public TreasureRes getLists(double latitude, double longitude) {
 
         List<Treasure> treasures = treasureRepository.getTreasures(longitude, latitude);
         List<TreasureListRes> treasureListRes = new ArrayList<>();
@@ -97,21 +103,27 @@ public class TreasureService {
         for (Treasure treasure : treasures) {
             double distance = distance(treasure.getLatitude(), treasure.getLongitude(), latitude, longitude);
 
+            Long like = treasureReactionRepository.countByTreasureAndReactionType(treasure, "like");
+            Long dislike = treasureReactionRepository.countByTreasureAndReactionType(treasure, "hate");
+
             treasureListRes.add(
                     TreasureListRes.builder()
                             .treasureId(treasure.getId())
-                            .likeCnt(10)
-                            .dislikeCnt(3)
+                            .likeCnt(like)
+                            .dislikeCnt(dislike)
                             .latitude(treasure.getLatitude())
                             .longitude(treasure.getLongitude())
                             .distance(distance)
                             .hashTag(treasure.getHashTag())
+                            .point(50)
                             .build()
             );
 
         }
 
-        return treasureListRes;
+        treasureListRes.sort(Comparator.naturalOrder());
+        TreasureRes treasureRes = new TreasureRes(treasureListRes);
+        return treasureRes;
     }
 
     public void createReaction(ReactionReq reactionReq) {

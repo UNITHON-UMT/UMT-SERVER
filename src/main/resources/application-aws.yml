@@ -1,0 +1,10 @@
+spring:
+  datasource:
+    url:
+    username:
+    password:
+    driverClassName: com.mysql.cj.jdbc.Driver
+
+  onfig:
+    activate:
+      on-profile: aws
